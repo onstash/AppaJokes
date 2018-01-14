@@ -8,6 +8,10 @@ const get = key => {
 
 const set = (key, data) => AsyncStorage.setItem(key, JSON.stringify(data));
 
-const Cache = { get, set };
+const keys = {
+  ONBOARDING: "ONBOARDING:SHOWN"
+};
+
+const Cache = { get, set, keys };
 
 export default Cache;

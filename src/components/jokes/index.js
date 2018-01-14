@@ -15,12 +15,20 @@ class Jokes extends React.Component {
   }
 
   componentWillMount() {
-    ToastAndroid.show("Loading them jokes...", ToastAndroid.SHORT);
+    const { jokes: propsJokes } = this.props;
     this.setState(() => ({ loading: true }));
-    fetchTwoJokes().then(jokes => {
-      ToastAndroid.show("Jokes are loaded and ready...Dad", ToastAndroid.SHORT);
-      this.setState(() => ({ loading: false, jokes }));
-    });
+    if (propsJokes === null || !propsJokes.length) {
+      ToastAndroid.show("Loading them jokes...", ToastAndroid.SHORT);
+      fetchTwoJokes().then(jokes => {
+        ToastAndroid.show(
+          "Jokes are loaded and ready...Dad",
+          ToastAndroid.SHORT
+        );
+        this.setState(() => ({ loading: false, jokes }));
+      });
+    } else if (propsJokes !== null && propsJokes !== undefined) {
+      this.setState(() => ({ loading: false, jokes: propsJokes }));
+    }
   }
 
   updateJoke(joke) {

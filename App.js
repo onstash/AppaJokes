@@ -4,6 +4,6 @@
  * @flow
  */
 
-import App from "./src/components/jokes";
+import Main from "./src/components/main";
 
-export default App;
+export default Main;
