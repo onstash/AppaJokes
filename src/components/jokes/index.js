@@ -7,14 +7,20 @@ import Joke, { styles as jokeStyles } from "../joke";
 
 import { fetchJoke, fetchTwoJokes } from "../../data";
 
+import Timer from "../../utils/timer";
+import GoogleAnalytics from "../../utils/google-analytics";
+import Mixpanel from "../../utils/mixpanel";
+
 class Jokes extends React.Component {
   constructor() {
     super();
     this.state = { jokes: [], currentIndex: 0, loading: false };
     this.updateJoke = this.updateJoke.bind(this);
+    this.timer = new Timer();
   }
 
   componentWillMount() {
+    GoogleAnalytics.trackScreenName("Jokes");
     const { jokes: propsJokes } = this.props;
     this.setState(() => ({ loading: true }));
     if (propsJokes === null || !propsJokes.length) {
@@ -24,9 +30,11 @@ class Jokes extends React.Component {
           "Jokes are loaded and ready...Dad",
           ToastAndroid.SHORT
         );
+        this.timer.start();
         this.setState(() => ({ loading: false, jokes }));
       });
     } else if (propsJokes !== null && propsJokes !== undefined) {
+      this.timer.start();
       this.setState(() => ({ loading: false, jokes: propsJokes }));
     }
   }
@@ -37,15 +45,21 @@ class Jokes extends React.Component {
   }
 
   onIndexChanged(currentIndex) {
+    const timeSpent = this.timer.calculateTimeSpent();
+    const { jokes, currentIndex: previousIndex } = this.state;
+    const { id: jokeID, joke: jokeText } = jokes[previousIndex];
+    GoogleAnalytics.trackTimeSpentOnJoke(jokeID, jokeText, timeSpent);
+    GoogleAnalytics.trackJokeSwiped(jokeID, jokeText);
+    Mixpanel.trackJokeSwiped(jokeID, jokeText, timeSpent);
+
     if (this.state.currentIndex > currentIndex) {
       this.setState(() => ({ currentIndex }));
       return;
     }
 
-    this.setState(() => ({ currentIndex }));
-    const { jokes } = this.state;
     const jokesCount = jokes.length;
     const delta = Math.abs(currentIndex - jokesCount);
+    this.setState(() => ({ currentIndex }));
     if (
       Boolean(delta >= 3 && delta <= 5) ||
       Boolean(currentIndex === 1 && delta >= 1)
