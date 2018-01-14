@@ -6,12 +6,15 @@ import Swiper from "react-native-swiper";
 import { fetchJoke, fetchTwoJokes } from "../../data";
 import Cache from "../../data/cache";
 
+import GoogleAnalytics from "../../utils/google-analytics";
+
 class Onboarding extends React.Component {
   state = {
     jokes: null
   };
 
   componentWillMount() {
+    GoogleAnalytics.trackScreenName("Onboarding");
     this.mounted = true;
     Cache.set(Cache.keys.ONBOARDING, true);
     fetchTwoJokes().then(jokes => {

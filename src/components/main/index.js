@@ -5,6 +5,8 @@ import Jokes from "../jokes";
 
 import Cache from "../../data/cache";
 
+import Mixpanel from "../../utils/mixpanel";
+
 class Main extends React.Component {
   constructor() {
     super();
@@ -12,12 +14,14 @@ class Main extends React.Component {
   }
 
   componentWillMount() {
+    Mixpanel.trackAppOpened();
     Cache.get(Cache.keys.ONBOARDING).then(onboardingShown => {
       this.setState(() => ({ onboardingShown }));
     });
   }
 
   closeOnboarding(jokes) {
+    Mixpanel.trackOnboardingCompleted();
     this.setState(() => ({ onboardingShown: true, jokes }));
   }
 
