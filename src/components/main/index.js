@@ -1,4 +1,5 @@
 import React from "react";
+import { NetInfo } from "react-native";
 
 import Onboarding from "../onboarding";
 import Jokes from "../jokes";
@@ -6,6 +7,7 @@ import Jokes from "../jokes";
 import Cache from "../../data/cache";
 
 import Mixpanel from "../../utils/mixpanel";
+import { fetchConnectionInfo } from "../../utils/network";
 
 class Main extends React.Component {
   constructor() {
@@ -14,14 +16,18 @@ class Main extends React.Component {
   }
 
   componentWillMount() {
-    Mixpanel.trackAppOpened();
+    fetchConnectionInfo().then(connectionInfo => {
+      Mixpanel.trackAppOpened(connectionInfo);
+    });
     Cache.get(Cache.keys.ONBOARDING).then(onboardingShown => {
       this.setState(() => ({ onboardingShown }));
     });
   }
 
   closeOnboarding(jokes) {
-    Mixpanel.trackOnboardingCompleted();
+    fetchConnectionInfo().then(connectionInfo => {
+      Mixpanel.trackOnboardingCompleted(connectionInfo);
+    });
     this.setState(() => ({ onboardingShown: true, jokes }));
   }
 

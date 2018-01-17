@@ -10,6 +10,7 @@ import { fetchJoke, fetchTwoJokes } from "../../data";
 import Timer from "../../utils/timer";
 import GoogleAnalytics from "../../utils/google-analytics";
 import Mixpanel from "../../utils/mixpanel";
+import { fetchConnectionInfo } from "../../utils/network";
 
 class Jokes extends React.Component {
   constructor() {
@@ -50,7 +51,9 @@ class Jokes extends React.Component {
     const { id: jokeID, joke: jokeText } = jokes[previousIndex];
     GoogleAnalytics.trackTimeSpentOnJoke(jokeID, jokeText, timeSpent);
     GoogleAnalytics.trackJokeSwiped(jokeID, jokeText);
-    Mixpanel.trackJokeSwiped(jokeID, jokeText, timeSpent);
+    fetchConnectionInfo().then(connectionInfo => {
+      Mixpanel.trackJokeSwiped(jokeID, jokeText, timeSpent, connectionInfo);
+    });
 
     if (this.state.currentIndex > currentIndex) {
       this.setState(() => ({ currentIndex }));
