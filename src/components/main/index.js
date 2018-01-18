@@ -16,11 +16,13 @@ class Main extends React.Component {
   }
 
   componentWillMount() {
-    fetchConnectionInfo().then(connectionInfo => {
-      Mixpanel.trackAppOpened(connectionInfo);
-    });
     Cache.get(Cache.keys.ONBOARDING).then(onboardingShown => {
       this.setState(() => ({ onboardingShown }));
+      if (onboardingShown) {
+        fetchConnectionInfo().then(connectionInfo => {
+          Mixpanel.trackAppOpened(connectionInfo);
+        });
+      }
     });
   }
 
