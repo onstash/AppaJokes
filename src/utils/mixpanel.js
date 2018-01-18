@@ -2,6 +2,7 @@ import base64 from "base-64"; //'./lib/base64';
 
 import config from "../../config";
 import Cache from "../data/cache";
+import deviceInfo from "./device";
 
 const sendRequest = (urlPath, payload) => {
   let b64 = null;
@@ -25,7 +26,8 @@ const track = (event, properties = {}) => {
       properties: Object.assign(properties, {
         token: config.mixpanel.token,
         distinct_id: distinctID,
-        distinctID
+        distinctID,
+        ...deviceInfo
       })
     }).catch(e => console.log(e, event));
   });
@@ -36,7 +38,7 @@ const profiles = {
     return fetchDistinctID().then(distinctID => {
       profileProperties.created_at = new Date().toUTCString();
       const payload = {
-        $set: profileProperties,
+        $set: Object.assign({ deviceInfo }, profileProperties),
         $token: config.mixpanel.token,
         $distinct_id: distinctID
       };
@@ -51,9 +53,14 @@ const cryptoRandomString = number =>
 const fetchDistinctID = () => {
   return Cache.get(Cache.keys.DISTINCT_ID).then(distinctID => {
     if (!distinctID) {
-      const newDistinctID = cryptoRandomString(10);
+      let newDistinctID;
+      if (deviceInfo.uniqueID !== null || deviceInfo.uniqueID !== undefined) {
+        newDistinctID = `${deviceInfo.uniqueID}-${cryptoRandomString(5)}`;
+        Cache.set(Cache.keys.DISTINCT_ID, newDistinctID);
+        return newDistinctID;
+      }
+      newDistinctID = cryptoRandomString(5);
       Cache.set(Cache.keys.DISTINCT_ID, newDistinctID);
-      return newDistinctID;
     }
     return distinctID;
   });
@@ -62,7 +69,9 @@ const fetchDistinctID = () => {
 export default {
   trackJokeSwiped: (jokeID, text, timeSpent, connectionInfo) =>
     track("Joke Swiped", { jokeID, text, timeSpent, ...connectionInfo }),
-  trackOnboardingCompleted: connectionInfo =>
-    track("Onboarding Completed", { ...connectionInfo }),
+  trackOnboardingCompleted: connectionInfo => {
+    profiles.set({ ...connectionInfo });
+    track("Onboarding Completed", { ...connectionInfo });
+  },
   trackAppOpened: connectionInfo => track("App Opened", { ...connectionInfo })
 };
