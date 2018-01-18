@@ -24,6 +24,7 @@ const track = (event, properties = {}) => {
       event,
       properties: Object.assign(properties, {
         token: config.mixpanel.token,
+        distinct_id: distinctID,
         distinctID
       })
     }).catch(e => console.log(e, event));
@@ -59,8 +60,9 @@ const fetchDistinctID = () => {
 };
 
 export default {
-  trackJokeSwiped: (jokeID, text, timeSpent) =>
-    track("Joke Swiped", { jokeID, text, timeSpent }),
-  trackOnboardingCompleted: () => track("Onboarding Completed"),
-  trackAppOpened: () => track("App Opened")
+  trackJokeSwiped: (jokeID, text, timeSpent, connectionInfo) =>
+    track("Joke Swiped", { jokeID, text, timeSpent, ...connectionInfo }),
+  trackOnboardingCompleted: connectionInfo =>
+    track("Onboarding Completed", { ...connectionInfo }),
+  trackAppOpened: connectionInfo => track("App Opened", { ...connectionInfo })
 };
