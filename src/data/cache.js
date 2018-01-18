@@ -18,7 +18,8 @@ const set = (key, data) => AsyncStorage.setItem(key, JSON.stringify(data));
 
 const keys = {
   ONBOARDING: "ONBOARDING:SHOWN",
-  DISTINCT_ID: "DISTINCT_ID"
+  DISTINCT_ID: "DISTINCT_ID",
+  LOCATION_METADATA: "LOCATION:METADATA"
 };
 
 const Cache = { get, set, keys };

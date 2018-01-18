@@ -3,6 +3,7 @@ import base64 from "base-64"; //'./lib/base64';
 import config from "../../config";
 import Cache from "../data/cache";
 import deviceInfo from "./device";
+import fetchLocationInfo from "./location";
 
 const sendRequest = (urlPath, payload) => {
   let b64 = null;
@@ -20,30 +21,44 @@ const sendRequest = (urlPath, payload) => {
 };
 
 const track = (event, properties = {}) => {
-  fetchDistinctID().then(distinctID => {
-    return sendRequest("/track", {
-      event,
-      properties: Object.assign(properties, {
-        token: config.mixpanel.token,
-        distinct_id: distinctID,
-        distinctID,
-        ...deviceInfo
-      })
-    }).catch(e => console.log(e, event));
-  });
+  return Promise.all([fetchDistinctID(), fetchLocationInfo()]).then(
+    ([distinctID, locationInfo]) => {
+      return sendRequest("/track", {
+        event,
+        properties: Object.assign(properties, {
+          token: config.mixpanel.token,
+          distinct_id: distinctID,
+          distinctID,
+          ...deviceInfo,
+          ...locationInfo
+        })
+      }).catch(e => console.log(e, event));
+    }
+  );
 };
 
 const profiles = {
   set: profileProperties => {
-    return fetchDistinctID().then(distinctID => {
-      profileProperties.created_at = new Date().toUTCString();
-      const payload = {
-        $set: Object.assign({ deviceInfo }, profileProperties),
-        $token: config.mixpanel.token,
-        $distinct_id: distinctID
-      };
-      return sendRequest("/engage", payload);
-    });
+    return Promise.all([fetchDistinctID(), fetchLocationInfo()]).then(
+      ([distinctID, locationInfo]) => {
+        const createdAt = new Date().toUTCString();
+        profileProperties.created_at = createdAt;
+        const payload = {
+          $set: Object.assign(
+            {
+              ...deviceInfo,
+              ...locationInfo,
+              $created: createdAt
+            },
+            profileProperties
+          ),
+          $token: config.mixpanel.token,
+          $distinct_id: distinctID,
+          $ip: locationInfo.ip
+        };
+        return sendRequest("/engage", payload);
+      }
+    );
   }
 };
 
