@@ -31,6 +31,7 @@ class Main extends React.Component {
       Mixpanel.trackOnboardingCompleted(connectionInfo);
     });
     this.setState(() => ({ onboardingShown: true, jokes }));
+    Cache.set(Cache.keys.ONBOARDING, true);
   }
 
   render() {
